@@ -3,11 +3,11 @@ from flask.ext.appbuilder.charts.views import DirectByChartView
 from flask import render_template, redirect
 from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.models.sqla.filters import FilterEqualFunction
-from flask.ext.appbuilder import ModelView
+from flask.ext.appbuilder import ModelView, BaseView, expose
 from datetime import datetime
-from app import appbuilder, db
+from app import appbuilder, db, app
 
-from app.models import LightDevice, GrowSession, EventLog, FlowerDevice, FlowerData, new_event, WaterDevice
+from app.models import LightDevice, GrowSession, EventLog, FlowerDevice, FlowerData, Subscriber, new_event, WaterDevice
 
 """
     Application wide 404 error handler
@@ -19,11 +19,38 @@ def page_not_found(e):
     return render_template('404.html', base_template=appbuilder.base_template, appbuilder=appbuilder), 404
 
 
+class JobsView(BaseView):
+    route_base = '/jobs'
+    default_view = 'view'
+
+    @expose('/')
+    def view(self):
+        from app.tasks import scheduler
+
+        jobs = scheduler.get_jobs()
+        return render_template('view_jobs.html', base_template=appbuilder.base_template,
+                               appbuilder=appbuilder, jobs=jobs)
+
+
+class SocketManualView(BaseView):
+    route_base = '/hardware/socket'
+    default_view = 'view'
+
+    @expose('/')
+    def view(self):
+        if app.config['PI']:
+            from app.hardware import remote_socket
+
+            remote_socket.switch([1, 0, 0, 1, 1], 1, False)
+            return "bla"
+
+
 class EventLogModelView(ModelView):
     datamodel = SQLAInterface(EventLog)
 
     list_columns = ['timestamp', 'text']
     base_order = ('timestamp', 'desc')
+
 
 class GrowSessionModelView(ModelView):
     datamodel = SQLAInterface(GrowSession)
@@ -43,12 +70,10 @@ class GrowSessionModelView(ModelView):
         new_event("GrowSession started " + grow_session.name)
 
         self.update_redirect()
-        for light_device in grow_session.light_devices:
-            light_device.next_switch = datetime.now()
-            db.session.commit()
-            from app.tasks import switch_light
+        from tasks import start_light_task
 
-            switch_light(light_device.id)
+        for light_device in grow_session.light_devices:
+            start_light_task(light_device)
         return redirect(self.get_redirect())
 
 
@@ -58,21 +83,32 @@ class LightDeviceModelView(ModelView):
 
     list_columns = ['name']
 
-    @action("Switch", "Switch Light Device", "Do you really want to?", "fa-rocket")
-    def switch(self, light_devices):
+    @action("Switch On", "Switch Light Device On", "Do you really want to?", "fa-rocket")
+    def switch_on(self, light_devices):
+        from app.tasks import switch_light_on
 
         if isinstance(light_devices, list):
             light_devices = light_devices
         else:
             light_devices = [light_devices]
         self.update_redirect()
-        from app.tasks import scheduler, switch_light
         for light_device in light_devices:
-            job = scheduler.get_job('light' + light_device.name)
-            if job:
-                job.remove()
-            new_event("Switch Light Action " + light_device.name)
-            switch_light(light_device.id)
+            new_event("Switch Light Action " + light_device.name + " on")
+            switch_light_on(light_device.id)
+        return redirect(self.get_redirect())
+
+    @action("Switch Off", "Switch Light Device Off", "Do you really want to?", "fa-rocket")
+    def switch_off(self, light_devices):
+        from app.tasks import switch_light_off
+
+        if isinstance(light_devices, list):
+            light_devices = light_devices
+        else:
+            light_devices = [light_devices]
+        self.update_redirect()
+        for light_device in light_devices:
+            new_event("Switch Light Action " + light_device.name + " off")
+            switch_light_off(light_device.id)
         return redirect(self.get_redirect())
 
 
@@ -81,6 +117,23 @@ class WaterDeviceModelView(ModelView):
     related_views = [GrowSession]
 
     list_columns = ['name']
+
+    @action("Switch", "Switch Water Device", "Do you really want to?", "fa-rocket")
+    def switch(self, water_devices):
+        from app.tasks import scheduler, switch_water
+
+        if isinstance(water_devices, list):
+            water_devices = water_devices
+        else:
+            water_devices = [water_devices]
+        self.update_redirect()
+        for water_device in water_devices:
+            job = scheduler.get_job('water_' + water_device.name)
+            if job:
+                job.remove()
+            new_event("Switch Water Action " + water_device.name)
+            switch_water(water_device.id)
+        return redirect(self.get_redirect())
 
 
 class FlowerDeviceModelView(ModelView):
@@ -92,7 +145,14 @@ class FlowerDeviceModelView(ModelView):
 
 class FlowerDataModelView(ModelView):
     datamodel = SQLAInterface(FlowerData)
-    related_views = [GrowSession, FlowerDevice]
+    related_views = [GrowSession]
+
+
+class SubscriberModelView(ModelView):
+    datamodel = SQLAInterface(Subscriber)
+    related_views = [GrowSession]
+
+    list_columns = ['name']
 
 
 class FlowerDataChartView(DirectByChartView):
@@ -121,10 +181,16 @@ appbuilder.add_view(GrowSessionModelView, "GrowSessions", icon="fa-folder-open-o
                     category_icon="fa-envelope")
 appbuilder.add_view(LightDeviceModelView, "LightDevices", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
+appbuilder.add_view(WaterDeviceModelView, "WaterDevices", icon="fa-folder-open-o", category="Manage",
+                    category_icon="fa-envelope")
 appbuilder.add_view(FlowerDeviceModelView, "FlowerDevices", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
 appbuilder.add_view(FlowerDataModelView, "FlowerData", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
+appbuilder.add_view(SubscriberModelView, "Subscriber", icon="fa-folder-open-o", category="Manage",
+                    category_icon="fa-envelope")
 
 appbuilder.add_view(FlowerDataChartView, "FlowerData", icon="fa-folder-open-o", category="View",
                     category_icon="fa-envelope")
+appbuilder.add_view(JobsView, "Jobs", category="View")
+appbuilder.add_view(SocketManualView, "SocketManual", category="View")

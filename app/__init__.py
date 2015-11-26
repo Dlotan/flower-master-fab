@@ -9,7 +9,7 @@ from flask.ext.appbuilder import SQLA, AppBuilder
 """
 
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.ERROR)
 
 app = Flask(__name__)
 app.config.from_object(config[os.getenv('FLASK_CONFIG') or 'default'])

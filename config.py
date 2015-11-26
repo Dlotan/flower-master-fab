@@ -1,8 +1,22 @@
 import os
 from flask_appbuilder.security.manager import AUTH_OID, AUTH_REMOTE_USER, AUTH_DB, AUTH_LDAP, AUTH_OAUTH
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
+
+    """SCHEDULER_JOBSTORES = {
+        'default': SQLAlchemyJobStore(url='sqlite:///jobs.sqlite')
+    }"""
+    SCHEDULER_EXECUTORS = {
+        'default': ThreadPoolExecutor(20),
+        'processpool': ProcessPoolExecutor(5)
+    }
+    SCHEDULER_DEFAULTS = {
+        'coalesce': False,
+        'max_instances': 3
+    }
     # Your App secret key
     SECRET_KEY = '\2\1thisismyscretkey\1\2\e\y\y\h'
 
@@ -102,6 +116,7 @@ class Config(object):
     #APP_THEME = "spacelab.css"
     #APP_THEME = "united.css"
     #APP_THEME = "yeti.css"
+    EMAIL_URL = "florianhub.appspot.com/email"
 
 
 class DevelopmentConfig(Config):

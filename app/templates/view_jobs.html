@@ -1,0 +1,9 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+{% for job in jobs %}
+    {{ job.id }} {{ job.next_run_time }}<br>
+{% endfor %}
+{% endblock %}
+
+

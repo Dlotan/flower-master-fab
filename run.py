@@ -9,6 +9,7 @@ if os.path.exists('../.env'):
 from app import app
 from app.tasks import start_scheduler
 
+
 start_scheduler()
-app.run(host='0.0.0.0', port=80, debug=True)
+app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
 

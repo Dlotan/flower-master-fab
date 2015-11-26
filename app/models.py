@@ -14,6 +14,7 @@ AuditMixin will add automatic timestamp of created and modified by who
 """
 
 def new_event(text):
+    print(text)
     db.session.add(EventLog(text=text))
     db.session.commit()
 
@@ -36,8 +37,8 @@ class GrowSession(Model):
     light_switch = Column(Date)
     end_date = Column(Date)
 
-    day_hours = Column(Integer, default=18)
-    night_hours = Column(Integer, default=6)
+    day_start_hour = Column(Integer, default=6)
+    night_start_hour = Column(Integer, default=24)
 
     brand = Column(String(50))
     num_plants = Column(Integer)
@@ -48,6 +49,7 @@ class GrowSession(Model):
     water_devices = relationship('WaterDevice', back_populates='grow_session')
     flower_devices = relationship('FlowerDevice', back_populates='grow_session')
     flower_data = relationship('FlowerData', back_populates='grow_session')
+    subscribers = relationship('Subscriber', back_populates='grow_session')
 
     def __repr__(self):
         return self.name
@@ -74,7 +76,6 @@ class LightDevice(Model):
     device = Column(Integer, nullable=False)
 
     state = Column(Boolean, default=False)
-    next_switch = Column(DateTime)
 
     grow_session_id = Column(Integer, ForeignKey('grow_session.id'))
     grow_session = relationship("GrowSession")
@@ -86,7 +87,7 @@ class LightDevice(Model):
     def get_active():
         result = []
         for light_device in appbuilder.session.query(LightDevice).all():
-            if light_device.next_switch is not None:
+            if light_device.grow_session.is_active():
                 result.append(light_device)
         return result
 
@@ -161,6 +162,19 @@ class FlowerData(Model):
     grow_session_id = Column(Integer, ForeignKey('grow_session.id'), nullable=False)
     grow_session = relationship('GrowSession')
 
+    def get_data_dict(self):
+        return dict(
+            TimeStamp=str(self.timestamp),
+            Temperature=str(self.temperature),
+            Light=str(self.light),
+            Water=str(self.water),
+            Battery=str(self.battery),
+            ecb=str(self.ecb),
+            ec_porus=str(self.ec_porus),
+            dli=str(self.dli),
+            ea=str(self.ea)
+        )
+
     @staticmethod
     def new_flower_data(data, flower_device_id, grow_session_id):
         return FlowerData(
@@ -175,3 +189,26 @@ class FlowerData(Model):
             flower_device_id=flower_device_id,
             grow_session_id=grow_session_id,
         )
+
+
+class Subscriber(Model):
+    __tablename__ = 'subscriber'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    receiver_email = Column(String)
+
+    grow_session_id = Column(Integer, ForeignKey('grow_session.id'))
+    grow_session = relationship("GrowSession")
+
+    def __repr__(self):
+        return self.name
+
+    @staticmethod
+    def get_active_subscribers():
+        result = []
+        for subscriber in appbuilder.session.query(Subscriber).all():
+            if subscriber.grow_session.is_active():
+                result.append(subscriber)
+        return result
+
