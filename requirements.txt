@@ -1,3 +1,4 @@
+Flask-SQLAlchemy==2.0
 APScheduler==3.0.4
 Flask-AppBuilder==1.4.7
 Flask-Testing==0.4.2
