@@ -119,18 +119,22 @@ class Config(object):
     EMAIL_URL = "florianhub.appspot.com/email"
 
 
-class DevelopmentConfig(Config):
-    PI = True
-    MAC = False
+class ProductionConfig(Config):
+    HARDWARE = True
 
-class MacConfig(Config):
-    PI = False
-    MAC = True
+
+class DevelopmentConfig(Config):
+    HARDWARE = False
+
+
+class TestingConfig(Config):
+    HARDWARE = False
 
 
 config = {
+    'production': ProductionConfig,
     'development': DevelopmentConfig,
-    'mac': MacConfig,
+    'testing': TestingConfig,
 
-    'default': DevelopmentConfig
+    'default': ProductionConfig,
 }

@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, R
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app import appbuilder, db
+
 """
 
 You can use the extra Flask-AppBuilder fields and Mixin's
@@ -12,6 +13,7 @@ AuditMixin will add automatic timestamp of created and modified by who
 
 
 """
+
 
 def new_event(text):
     print(text)
@@ -211,4 +213,3 @@ class Subscriber(Model):
             if subscriber.grow_session.is_active():
                 result.append(subscriber)
         return result
-

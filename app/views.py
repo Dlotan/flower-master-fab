@@ -5,18 +5,10 @@ from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder.models.sqla.filters import FilterEqualFunction
 from flask.ext.appbuilder import ModelView, BaseView, expose
 from datetime import datetime
-from app import appbuilder, db, app
+from app import appbuilder, db
+from flask import current_app
 
 from app.models import LightDevice, GrowSession, EventLog, FlowerDevice, FlowerData, Subscriber, new_event, WaterDevice
-
-"""
-    Application wide 404 error handler
-"""
-
-
-@appbuilder.app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html', base_template=appbuilder.base_template, appbuilder=appbuilder), 404
 
 
 class JobsView(BaseView):
@@ -38,7 +30,7 @@ class SocketManualView(BaseView):
 
     @expose('/')
     def view(self):
-        if app.config['PI']:
+        if current_app.config['HARDWARE']:
             from app.hardware import remote_socket
 
             remote_socket.switch([1, 0, 0, 1, 1], 1, False)
@@ -174,7 +166,6 @@ class FlowerDataChartView(DirectByChartView):
     ]
 
 
-db.create_all()
 appbuilder.add_view(EventLogModelView, "EventLog", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
 appbuilder.add_view(GrowSessionModelView, "GrowSessions", icon="fa-folder-open-o", category="Manage",

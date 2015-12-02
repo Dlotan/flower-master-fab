@@ -1,2 +1,4 @@
 APScheduler==3.0.4
 Flask-AppBuilder==1.4.7
+Flask-Testing==0.4.2
+Flask-Script==2.0.5
