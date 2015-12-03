@@ -1,13 +1,15 @@
-from flask.ext.testing import TestCase
-from app import create_application, db
+import unittest
+from app.config import config
+
+from app import app, db
 
 
-class BaseTestCase(TestCase):
-
-    def create_app(self):
-        return create_application('testing')
+class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
+        app.config.from_object(config['testing'])
+        self.app = app
+        self.c = self.app.test_client()
         db.create_all()
 
     def tearDown(self):

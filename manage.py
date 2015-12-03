@@ -8,11 +8,10 @@ if os.path.exists('/.env'):
             os.environ[var[0]] = var[1]
 
 from flask.ext.script import Manager
-from app import create_application, db, appbuilder
+from app import app, db, appbuilder
 from app.tasks import start_scheduler
 import unittest
 
-app = create_application(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
 
 
@@ -24,6 +23,8 @@ def run():
 
 @manager.command
 def test():
+    import logging
+    logging.getLogger().setLevel(logging.ERROR)
     tests = unittest.TestLoader().discover('tests')
     result = unittest.TextTestRunner(verbosity=2).run(tests)
     if result.wasSuccessful():

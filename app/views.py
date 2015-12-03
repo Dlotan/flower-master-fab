@@ -185,3 +185,4 @@ appbuilder.add_view(FlowerDataChartView, "FlowerData", icon="fa-folder-open-o", 
                     category_icon="fa-envelope")
 appbuilder.add_view(JobsView, "Jobs", category="View")
 appbuilder.add_view(SocketManualView, "SocketManual", category="View")
+db.create_all()

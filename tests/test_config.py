@@ -1,31 +1,33 @@
 import unittest
-from flask import current_app
-from flask.ext.testing import TestCase
-from app import create_application
+from app.config import config
+from app import app
 
 
-class TestProductionConfig(TestCase):
-    def create_app(self):
-        return create_application('production')
+class TestProductionConfig(unittest.TestCase):
+    def setUp(self):
+        app.config.from_object(config['production'])
+        self.app = app
+
+    def test_app_is_production(self):
+        self.assertTrue(self.app.config['HARDWARE'])
+
+
+class TestDevelopmentConfig(unittest.TestCase):
+    def setUp(self):
+        app.config.from_object(config['development'])
+        self.app = app
+
+    def test_app_is_development(self):
+        self.assertFalse(self.app.config['HARDWARE'])
+
+
+class TestTestConfig(unittest.TestCase):
+    def setUp(self):
+        app.config.from_object(config['testing'])
+        self.app = app
 
     def test_app_is_testing(self):
-        assert current_app.config['HARDWARE'] == True
-
-
-class TestDevelopmentConfig(TestCase):
-    def create_app(self):
-        return create_application('development')
-
-    def test_app_is_developing(self):
-        assert current_app.config['HARDWARE'] == False
-
-
-class TestTestConfig(TestCase):
-    def create_app(self):
-        return create_application('testing')
-
-    def test_app_is_testing(self):
-        assert current_app.config['HARDWARE'] == False
+        self.assertFalse(self.app.config['HARDWARE'])
 
 
 if __name__ == '__main__':

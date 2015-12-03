@@ -36,7 +36,7 @@ def meassure():
 
 def switch_light(light_id, on):
     light_device = appbuilder.session.query(LightDevice).filter(LightDevice.id == light_id).first()
-    if app.config['HARDWARE']:
+    if current_app.config['HARDWARE']:
         from app.hardware import remote_socket
 
         remote_socket.switch(map(int, light_device.key), light_device.device, on)
