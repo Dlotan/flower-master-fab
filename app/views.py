@@ -34,7 +34,7 @@ class SocketManualView(BaseView):
             from app.hardware import remote_socket
 
             remote_socket.switch([1, 0, 0, 1, 1], 1, False)
-            return "bla"
+        return "bla"
 
 
 class EventLogModelView(ModelView):
@@ -185,4 +185,3 @@ appbuilder.add_view(FlowerDataChartView, "FlowerData", icon="fa-folder-open-o", 
                     category_icon="fa-envelope")
 appbuilder.add_view(JobsView, "Jobs", category="View")
 appbuilder.add_view(SocketManualView, "SocketManual", category="View")
-db.create_all()

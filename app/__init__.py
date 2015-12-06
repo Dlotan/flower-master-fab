@@ -6,9 +6,6 @@ import os
 
 from app.config import config
 
-"""
- Logging configuration
-"""
 
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(name)s:%(message)s')
 logging.getLogger().setLevel(logging.ERROR)

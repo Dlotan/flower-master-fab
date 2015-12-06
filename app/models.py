@@ -1,24 +1,19 @@
 from flask.ext.appbuilder import Model
 from flask.ext.appbuilder.models.mixins import AuditMixin, FileColumn, ImageColumn
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, REAL, Date
+from sqlalchemy import Column, Integer, \
+    String, ForeignKey, DateTime, \
+    Boolean, REAL, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app import appbuilder, db
-
-"""
-
-You can use the extra Flask-AppBuilder fields and Mixin's
-
-AuditMixin will add automatic timestamp of created and modified by who
-
-
-"""
+from flask import current_app
 
 
 def new_event(text):
-    print(text)
-    db.session.add(EventLog(text=text))
-    db.session.commit()
+    if not current_app.config['TESTING']:
+        print(text)
+        db.session.add(EventLog(text=text))
+        db.session.commit()
 
 
 class EventLog(Model):

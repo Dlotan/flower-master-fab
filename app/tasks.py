@@ -3,6 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.models import LightDevice, new_event, FlowerData, WaterDevice, GrowSession
 from app import appbuilder, db
 from flask import current_app
+import logging
 import urllib
 import urllib2
 
@@ -31,7 +32,7 @@ def meassure():
         for water_device in flower_device.grow_session.water_devices:
             if data['Water'] < water_device.water_threshhold:  # Have to water.
                 start_water(water_device.id)
-    print("Meassure completed")
+    logging.getLogger().warning("Meassure completed")
 
 
 def switch_light(light_id, on):
