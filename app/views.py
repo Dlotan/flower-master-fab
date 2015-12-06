@@ -2,7 +2,7 @@ from flask.ext.appbuilder.actions import action
 from flask.ext.appbuilder.charts.views import DirectByChartView
 from flask import render_template, redirect
 from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
-from flask_appbuilder.models.sqla.filters import FilterEqualFunction
+# from flask_appbuilder.models.sqla.filters import FilterEqualFunction
 from flask.ext.appbuilder import ModelView, BaseView, expose
 from datetime import datetime
 from app import appbuilder, db
