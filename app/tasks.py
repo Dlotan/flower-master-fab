@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.models import LightDevice, new_event, FlowerData, WaterDevice, GrowSession
-from app import appbuilder, db
+from app import appbuilder, db, app
 from flask import current_app
 import logging
 import urllib
@@ -11,7 +11,7 @@ scheduler = None
 
 
 def meassure():
-    if current_app.config['HARDWARE']:
+    if app.config['HARDWARE']:
         from app.hardware import flower_power
     result = []
     for grow_session in GrowSession.get_active():
@@ -20,10 +20,10 @@ def meassure():
         print("Nothing to meassure")
         return
     for flower_device in result:
-        if current_app.config['HARDWARE']:
+        if app.config['HARDWARE']:
             data = flower_power.get_flower_data(flower_device.mac)
         else:
-            data = dict(Temperature=10.23, Light=100, Water=12.5, Battery=90, Ecb=0.5,
+            data = dict(Temperature=10.23, Light=100, Water=50.0, Battery=90, Ecb=0.5,
                         EcPorus=0.6, DLI=0.7, Ea=0.8, )
         db.session.add(FlowerData.new_flower_data(data, flower_device.id, flower_device.grow_session.id))
         db.session.commit()
@@ -63,14 +63,12 @@ def switch_water_to(water_device, on):
 
 
 def start_water(water_id):
-    from app import appbuilder, db
-
     water_device = appbuilder.session.query(WaterDevice).filter(WaterDevice.id == water_id).first()
     switch_water_to(water_device, True)
     water_device.switch_off_time = datetime.now() + timedelta(minutes=water_device.watering_duration_minutes)
     db.session.commit()
     scheduler.add_job(stop_water, 'date', run_date=water_device.switch_off_time, args=[water_device.id],
-                      misfire_grace_time=10000000, id='water_' + water_device.name)
+                      misfire_grace_time=10000000, id='water_off_' + water_device.name)
     new_event("Switch Water " + water_device.name + " to True")
 
 

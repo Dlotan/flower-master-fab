@@ -5,12 +5,12 @@ from sqlalchemy import Column, Integer, \
     Boolean, REAL, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app import appbuilder, db
+from app import appbuilder, db, app
 from flask import current_app
 
 
 def new_event(text):
-    if not current_app.config['TESTING']:
+    if not app.config['TESTING']:
         print(text)
         db.session.add(EventLog(text=text))
         db.session.commit()
@@ -100,8 +100,8 @@ class WaterDevice(Model):
 
     switch_off_time = Column(DateTime)
 
-    water_threshhold = Column(REAL, default=25)
-    watering_duration_minutes = Column(Integer, default=20)
+    water_threshhold = Column(REAL, default=18)
+    watering_duration_minutes = Column(Integer, default=30)
 
     grow_session_id = Column(Integer, ForeignKey('grow_session.id'))
     grow_session = relationship("GrowSession")
