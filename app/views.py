@@ -162,7 +162,37 @@ class FlowerDataChartView(DirectByChartView):
             'label': 'Light',
             'group': 'timestamp',
             'series': ['light']
-        }
+        },
+        {
+            'label': 'Temperature',
+            'group': 'timestamp',
+            'series': ['temperature']
+        },
+        {
+            'label': 'Battery',
+            'group': 'timestamp',
+            'series': ['battery']
+        },
+        {
+            'label': 'Ecb',
+            'group': 'timestamp',
+            'series': ['ecb']
+        },
+        {
+            'label': 'Ec_Porus',
+            'group': 'timestamp',
+            'series': ['ec_porus']
+        },
+        {
+            'label': 'Dli',
+            'group': 'timestamp',
+            'series': ['dli']
+        },
+        {
+            'label': 'Ea',
+            'group': 'timestamp',
+            'series': ['ea']
+        },
     ]
 
 

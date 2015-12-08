@@ -106,7 +106,7 @@ def update_subscribers():
         newest_data_point = appbuilder.session.query(FlowerData) \
             .filter(FlowerData.grow_session_id == active_grow_session.id) \
             .order_by(FlowerData.timestamp.desc()).first()
-        if newest_data_point is None:
+        if newest_data_point is None:  # If no data in GrowSession just skip.
             continue
         data = newest_data_point.get_data_dict()
         for subscriber in subscribers:
@@ -161,5 +161,6 @@ def start_scheduler():
     # Subscribers.
     scheduler.add_job(update_subscribers, 'cron',
                       hour='15', id='update_subscribers')
+    update_subscribers()
     print("Scheduler started")
     scheduler.start()
