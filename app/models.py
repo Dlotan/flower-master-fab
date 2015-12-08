@@ -6,7 +6,6 @@ from sqlalchemy import Column, Integer, \
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app import appbuilder, db, app
-from flask import current_app
 
 
 def new_event(text):
@@ -166,10 +165,10 @@ class FlowerData(Model):
             Light=str(self.light),
             Water=str(self.water),
             Battery=str(self.battery),
-            ecb=str(self.ecb),
-            ec_porus=str(self.ec_porus),
-            dli=str(self.dli),
-            ea=str(self.ea)
+            Ecb=str(self.ecb),
+            EcPorus=str(self.ec_porus),
+            DLI=str(self.dli),
+            Ea=str(self.ea)
         )
 
     @staticmethod

@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.models import LightDevice, new_event, FlowerData, WaterDevice, GrowSession
-from app import appbuilder, db, app
+from app import appbuilder, db, app, hub
 from flask import current_app
 import logging
-import urllib
-import urllib2
 
 scheduler = None
 
@@ -25,8 +23,10 @@ def meassure():
         else:
             data = dict(Temperature=10.23, Light=100, Water=50.0, Battery=90, Ecb=0.5,
                         EcPorus=0.6, DLI=0.7, Ea=0.8, )
-        db.session.add(FlowerData.new_flower_data(data, flower_device.id, flower_device.grow_session.id))
+        flower_data = FlowerData.new_flower_data(data, flower_device.id, flower_device.grow_session.id)
+        db.session.add(flower_data)
         db.session.commit()
+        hub.new_data_point(flower_data)
         new_event("Meassure Flower_device " + flower_device.mac)
         # Check if we have to water.
         for water_device in flower_device.grow_session.water_devices:
@@ -36,6 +36,14 @@ def meassure():
 
 
 def switch_light(light_id, on):
+    """ Switches light to state of the variable on
+    Args:
+        light_id (str): The database id from the Light
+        on (bool): True if the light should be turned on, False if off
+
+    Returns:
+
+    """
     light_device = appbuilder.session.query(LightDevice).filter(LightDevice.id == light_id).first()
     if current_app.config['HARDWARE']:
         from app.hardware import remote_socket
@@ -102,7 +110,6 @@ def update_subscribers():
             continue
         data = newest_data_point.get_data_dict()
         for subscriber in subscribers:
-            url = current_app.config['EMAIL_URL']
             receiver = subscriber.receiver_email
             subject = "Flower Data " \
                       + newest_data_point.grow_session.name \
@@ -111,18 +118,7 @@ def update_subscribers():
             body = ""
             for attribute in data:
                 body += attribute + " " + data[attribute] + "\n"
-            urllib_values = dict(
-                receiver=receiver,
-                subject=subject,
-                body=body
-            )
-            data = urllib.urlencode(urllib_values)
-            req = urllib2.Request(url, data)
-            try:
-                urllib2.urlopen(req)
-            except urllib2.HTTPError as e:
-                new_event("Urllib error " + str(e.code) + " " + e.read())
-                return
+            hub.send_email(receiver, subject, body)
             new_event("Send email to " + subscriber.name)
 
 
@@ -162,8 +158,8 @@ def start_scheduler():
                               args=[active_water_device.id],
                               misfire_grace_time=10000000,
                               id='water_on_' + active_water_device.name)
-    """# Subscribers.
+    # Subscribers.
     scheduler.add_job(update_subscribers, 'cron',
-                      hour='12', id='update_subscribers')"""
+                      hour='15', id='update_subscribers')
     print("Scheduler started")
     scheduler.start()
