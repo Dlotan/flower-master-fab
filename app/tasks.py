@@ -122,6 +122,14 @@ def update_subscribers():
             new_event("Send email to " + subscriber.name)
 
 
+def webcam():
+    if app.config["WEBCAM"]:
+        from app.hardware import webcam
+        filename = webcam.webcam_make_screenshot()
+        hub.new_webcam_screenshot(filename)
+        new_event("Made screenshot")
+
+
 def start_light_task(light_device):
     scheduler.add_job(switch_light_on, 'cron',
                       hours=light_device.day_start_hour,
@@ -161,6 +169,9 @@ def start_scheduler():
     # Subscribers.
     scheduler.add_job(update_subscribers, 'cron',
                       hour='15', id='update_subscribers')
-    update_subscribers()
+    # Webcam
+    scheduler.add_job(webcam, 'cron',
+                      minute='1,31', id='webcam')
+    webcam()
     print("Scheduler started")
     scheduler.start()

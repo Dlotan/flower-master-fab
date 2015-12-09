@@ -117,18 +117,21 @@ class ProductionConfig(Config):
     HARDWARE = True
     TESTING = False
     HUB_URL = "http://florian-hub.appspot.com"
+    WEBCAM = True
 
 
 class DevelopmentConfig(Config):
     HARDWARE = False
     TESTING = False
     HUB_URL = "http://127.0.0.1:8080"
+    WEBCAM = False
 
 
 class TestingConfig(Config):
     HARDWARE = False
     TESTING = True
     HUB_URL = "http://127.0.0.1:8080"
+    WEBCAM = False
 
 
 config = {

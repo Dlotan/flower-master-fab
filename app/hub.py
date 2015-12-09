@@ -43,3 +43,9 @@ def new_data_point(flower_data):
     r = requests.post(app.config["HUB_URL"] + "/flower/new_data",
                       headers=headers, data=json.dumps(params))
     return r.status_code == 200
+
+
+def new_webcam_screenshot(filename):
+    r = requests.post(app.config["HUB_URL"] + "/flower/new_picture",
+                      files={filename: open(filename, 'rb')})
+    return r.status_code == 200
