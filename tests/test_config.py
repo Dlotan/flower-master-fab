@@ -10,6 +10,7 @@ class TestProductionConfig(unittest.TestCase):
 
     def test_app_is_production(self):
         self.assertTrue(self.app.config['HARDWARE'])
+        self.assertTrue(self.app.config['WEBCAM'])
 
 
 class TestDevelopmentConfig(unittest.TestCase):
@@ -19,6 +20,7 @@ class TestDevelopmentConfig(unittest.TestCase):
 
     def test_app_is_development(self):
         self.assertFalse(self.app.config['HARDWARE'])
+        self.assertFalse(self.app.config['WEBCAM'])
 
 
 class TestTestConfig(unittest.TestCase):
@@ -28,6 +30,7 @@ class TestTestConfig(unittest.TestCase):
 
     def test_app_is_testing(self):
         self.assertFalse(self.app.config['HARDWARE'])
+        self.assertFalse(self.app.config['WEBCAM'])
 
 
 if __name__ == '__main__':

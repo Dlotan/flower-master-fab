@@ -120,7 +120,7 @@ class WaterDeviceModelView(ModelView):
             water_devices = [water_devices]
         self.update_redirect()
         for water_device in water_devices:
-            job = scheduler.get_job('water_' + water_device.name)
+            job = scheduler.get_job('water_off_' + water_device.name)
             if job:
                 job.remove()
             new_event("Switch Water Action " + water_device.name)

@@ -79,7 +79,7 @@ class RemoteSwitch(object):
 
 
 def switch(key, device_id, mode):
-    print(("Switch", key, device_id, mode))
+    print("Switch", key, device_id, mode)
     obj = RemoteSwitch(device=device_id,
                        key=key)
     if mode:

@@ -4,11 +4,11 @@ import requests
 
 
 def send_email(receiver, subject, body):
-    """ Send email by using the
+    """ Send email by using the hub.
     Args:
-        receiver (str):
-        subject (str):
-        body (str):
+        receiver (str): The email address of the person the email should be send to.
+        subject (str): The subject of the email.
+        body (str): The body of the email.
 
     Returns:
         bool: True if successful
@@ -46,6 +46,13 @@ def new_data_point(flower_data):
 
 
 def new_webcam_screenshot(filename):
+    """ Uploads the screenshot filename to the hub.
+    Args:
+        filename: The filename of the file which should be pushed to the hub.
+
+    Returns:
+
+    """
     r = requests.post(app.config["HUB_URL"] + "/flower/new_picture",
                       files={filename: open(filename, 'rb')})
     return r.status_code == 200

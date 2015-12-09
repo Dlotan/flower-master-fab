@@ -25,7 +25,7 @@ def meassure():
     for flower_device in result:
         if app.config['HARDWARE']:
             data = flower_power.get_flower_data(flower_device.mac)
-        else:
+        else:  # Mock data for development and testing.
             data = dict(Temperature=10.23, Light=100, Water=50.0, Battery=90, Ecb=0.5,
                         EcPorus=0.6, DLI=0.7, Ea=0.8, )
         flower_data = FlowerData.new_flower_data(data, flower_device.id, flower_device.grow_session.id)
@@ -221,7 +221,7 @@ def start_scheduler():
             scheduler.add_job(stop_water, 'date', run_date=active_water_device.switch_off_time,
                               args=[active_water_device.id],
                               misfire_grace_time=10000000,
-                              id='water_on_' + active_water_device.name)
+                              id='water_off_' + active_water_device.name)
     # Subscribers.
     scheduler.add_job(update_subscribers, 'cron',
                       hour='15', id='update_subscribers')

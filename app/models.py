@@ -6,11 +6,12 @@ from sqlalchemy import Column, Integer, \
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app import appbuilder, db, app
+from datetime import datetime
 
 
 def new_event(text):
     if not app.config['TESTING']:
-        print(text)
+        print("[" + str(datetime.now()) + "] " + text)
         db.session.add(EventLog(text=text))
         db.session.commit()
 
