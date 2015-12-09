@@ -46,11 +46,17 @@ class GrowSession(Model):
     flower_devices = relationship('FlowerDevice', back_populates='grow_session')
     flower_data = relationship('FlowerData', back_populates='grow_session')
     subscribers = relationship('Subscriber', back_populates='grow_session')
+    webcams = relationship('Webcam', back_populates='grow_session')
 
     def __repr__(self):
         return self.name
 
     def is_active(self):
+        """ Returns if the start_date exists => the GrowSession is active.
+
+        Returns:
+            bool: Active / Not Active.
+        """
         return self.start_date is not None and self.end_date is None
 
     @staticmethod
@@ -58,6 +64,14 @@ class GrowSession(Model):
         result = []
         for grow_session in appbuilder.session.query(GrowSession).all():
             if grow_session.is_active():
+                result.append(grow_session)
+        return result
+
+    @staticmethod
+    def get_inactive():
+        result = []
+        for grow_session in appbuilder.session.query(GrowSession).all():
+            if not grow_session.is_active():
                 result.append(grow_session)
         return result
 
@@ -87,6 +101,14 @@ class LightDevice(Model):
                 result.append(light_device)
         return result
 
+    @staticmethod
+    def get_inactive():
+        result = []
+        for light_device in appbuilder.session.query(LightDevice).all():
+            if not light_device.grow_session.is_active():
+                result.append(light_device)
+        return result
+
 
 class WaterDevice(Model):
     __tablename__ = 'water_device'
@@ -109,6 +131,11 @@ class WaterDevice(Model):
         return self.name
 
     def state(self):
+        """ Returns if the WaterDevice is on right now.
+
+        Returns:
+            bool: On/Off.
+        """
         return self.switch_off_time is not None
 
     @staticmethod
@@ -201,9 +228,23 @@ class Subscriber(Model):
         return self.name
 
     @staticmethod
-    def get_active_subscribers():
+    def get_active():
         result = []
         for subscriber in appbuilder.session.query(Subscriber).all():
             if subscriber.grow_session.is_active():
                 result.append(subscriber)
         return result
+
+
+class Webcam(Model):
+    __tablename = 'webcam'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    devicepath = Column(String)
+
+    grow_session_id = Column(Integer, ForeignKey('grow_session.id'))
+    grow_session = relationship("GrowSession")
+
+    def __repr__(self):
+        return self.name

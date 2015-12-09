@@ -110,7 +110,6 @@ class Config(object):
     # APP_THEME = "spacelab.css"
     # APP_THEME = "united.css"
     # APP_THEME = "yeti.css"
-    EMAIL_URL = "florianhub.appspot.com/email"
 
 
 class ProductionConfig(Config):

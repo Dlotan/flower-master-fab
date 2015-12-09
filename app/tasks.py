@@ -9,6 +9,11 @@ scheduler = None
 
 
 def meassure():
+    """ Measures the FlowerDevices of all active GrowSessions. Waters if their
+    water is under the WaterDevice threshhol.
+    Returns:
+
+    """
     if app.config['HARDWARE']:
         from app.hardware import flower_power
     result = []
@@ -36,10 +41,10 @@ def meassure():
 
 
 def switch_light(light_id, on):
-    """ Switches light to state of the variable on
+    """ Switches light to state of the variable on.
     Args:
-        light_id (str): The database id from the Light
-        on (bool): True if the light should be turned on, False if off
+        light_id (str): The database id from the Light.
+        on (bool): True if the light should be turned on, False if off.
 
     Returns:
 
@@ -55,14 +60,36 @@ def switch_light(light_id, on):
 
 
 def switch_light_on(light_id):
+    """ Switches the light light_id to on.
+    Args:
+        light_id (str): The id of the LightDevice.
+
+    Returns:
+
+    """
     switch_light(light_id, True)
 
 
 def switch_light_off(light_id):
+    """ Switches the light light_id to off.
+    Args:
+        light_id (str): The id of the LightDevice.
+
+    Returns:
+
+    """
     switch_light(light_id, False)
 
 
 def switch_water_to(water_device, on):
+    """ Switches the water_device to state on
+    Args:
+        water_device: The id of the WaterDevice
+        on (bool): On / Off
+
+    Returns:
+
+    """
     if water_device.state() == on:  # Already right state.
         return
     if current_app.config['HARDWARE']:
@@ -71,6 +98,13 @@ def switch_water_to(water_device, on):
 
 
 def start_water(water_id):
+    """ Starts the WaterDevice with water_id and starts the task to turn
+    it off.
+    Args:
+        water_id (str): The id of the WaterDevice.
+    Returns:
+
+    """
     water_device = appbuilder.session.query(WaterDevice).filter(WaterDevice.id == water_id).first()
     switch_water_to(water_device, True)
     water_device.switch_off_time = datetime.now() + timedelta(minutes=water_device.watering_duration_minutes)
@@ -81,6 +115,13 @@ def start_water(water_id):
 
 
 def stop_water(water_id):
+    """ Stops the WaterDevice.
+    Args:
+        water_id (str): The id of the WaterDevice.
+
+    Returns:
+
+    """
     water_device = appbuilder.session.query(WaterDevice).filter(WaterDevice.id == water_id).first()
     switch_water_to(water_device, False)
     water_device.switch_off_time = None
@@ -89,6 +130,13 @@ def stop_water(water_id):
 
 
 def switch_water(water_id):
+    """ Switches the WaterDevice -> When it's on turn it off and when it's off on
+    Args:
+        water_id (str): The id of the WaterDevice
+
+    Returns:
+
+    """
     water_device = appbuilder.session.query(WaterDevice).filter(WaterDevice.id == water_id).first()
     if water_device.state():
         stop_water(water_id)
@@ -99,6 +147,10 @@ def switch_water(water_id):
 
 
 def update_subscribers():
+    """ Updates all Subscribers of active GrowSessions
+    Returns:
+
+    """
     for active_grow_session in GrowSession.get_active():
         subscribers = active_grow_session.subscribers
         if len(subscribers) == 0:
@@ -149,6 +201,10 @@ def start_light_task(light_device):
 
 
 def start_scheduler():
+    """ Creates the scheduler and adds all basic tasks.
+    Returns:
+
+    """
     global scheduler
     scheduler = BackgroundScheduler(executors=current_app.config['SCHEDULER_EXECUTORS'],
                                     job_defaults=current_app.config['SCHEDULER_DEFAULTS'])
