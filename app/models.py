@@ -187,6 +187,10 @@ class FlowerData(Model):
     grow_session = relationship('GrowSession')
 
     def get_data_dict(self):
+        """ Gets the FlowerData as dict of strings.
+        Returns:
+            dict[str, str]:
+        """
         return dict(
             TimeStamp=str(self.timestamp),
             Temperature=str(self.temperature),
@@ -201,6 +205,16 @@ class FlowerData(Model):
 
     @staticmethod
     def new_flower_data(data, flower_device_id, grow_session_id):
+        """
+
+        Args:
+            data (dict[str, T]):
+            flower_device_id (str):
+            grow_session_id (str):
+
+        Returns:
+            FlowerData:
+        """
         return FlowerData(
             temperature=data['Temperature'],
             light=data['Light'],
@@ -230,6 +244,10 @@ class Subscriber(Model):
 
     @staticmethod
     def get_active():
+        """ Get Subscribers which have active GrowSession.
+        Returns:
+            list[Subscriber]: List of all active Subscribers.
+        """
         result = []
         for subscriber in appbuilder.session.query(Subscriber).all():
             if subscriber.grow_session.is_active():
