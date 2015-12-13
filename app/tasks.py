@@ -51,7 +51,7 @@ def switch_light(light_id, on):
 
     """
     light_device = appbuilder.session.query(LightDevice).filter(LightDevice.id == light_id).first()
-    if current_app.config['HARDWARE']:
+    if app.config['HARDWARE']:
         from app.hardware import remote_socket
 
         remote_socket.switch(map(int, light_device.key), light_device.device, on)
@@ -93,7 +93,7 @@ def switch_water_to(water_device, on):
     """
     if water_device.state() == on:  # Already right state.
         return
-    if current_app.config['HARDWARE']:
+    if app.config['HARDWARE']:
         from app.hardware import remote_socket
         remote_socket.switch(map(int, water_device.key), water_device.device, on)
 
@@ -229,7 +229,7 @@ def start_scheduler():
                       hour='15', id='update_subscribers')
     # Webcam
     scheduler.add_job(webcam, 'cron',
-                      minute='1,31', id='webcam')
+                      hour='10-22', minute='1,31', id='webcam')
     webcam()
     print("Scheduler started")
     scheduler.start()
