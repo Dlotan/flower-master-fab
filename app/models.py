@@ -35,7 +35,7 @@ class GrowSession(Model):
     end_date = Column(Date)
 
     day_start_hour = Column(Integer, default=6)
-    night_start_hour = Column(Integer, default=24)
+    night_start_hour = Column(Integer, default=0)
 
     brand = Column(String(50))
     num_plants = Column(Integer)

@@ -184,22 +184,24 @@ def webcam():
         new_event("Made screenshot")
 
 
-def start_light_task(light_device):
+def start_light_tasks(light_device):
+    grow_session = light_device.grow_session
     scheduler.add_job(switch_light_on, 'cron',
-                      hours=light_device.day_start_hour,
+                      hour=str(grow_session.day_start_hour),
                       misfire_grace_time=10000000,
                       args=[light_device.id],
                       id='light_on_' + light_device.name)
     scheduler.add_job(switch_light_off, 'cron',
-                      hours=light_device.night_start_hour,
+                      hour=str(grow_session.night_start_hour),
                       misfire_grace_time=10000000,
                       args=[light_device.id],
                       id='light_off_' + light_device.name)
-    if (light_device.night_start_hour > datetime.now().hour
-            > light_device.day_start_hour):  # Day = light on.
-        switch_light_on(light_device.id)
-    else:
-        switch_light_off(light_device.id)
+    switch_light(light_device.id, grow_session.is_day())
+
+
+def stop_light_tasks(light_device):
+    scheduler.remove_job('light_on_' + light_device.name)
+    scheduler.remove_job('light_off_' + light_device.name)
 
 
 def start_scheduler():
@@ -214,7 +216,7 @@ def start_scheduler():
     scheduler.add_job(meassure, 'cron', minute='0,15,30,45', id='meassure')
     # Light devices.
     for light_device in LightDevice.get_active():
-        start_light_task(light_device)
+        start_light_tasks(light_device)
     # Water devices.
     for active_water_device in WaterDevice.get_turned_on():
         if active_water_device.switch_off_time <= datetime.now():  # switch now if event in past

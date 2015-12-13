@@ -9,7 +9,7 @@ from app import appbuilder, db
 from flask import current_app
 
 from app.models import LightDevice, GrowSession, EventLog, FlowerDevice, FlowerData, Subscriber, new_event, WaterDevice
-
+from app.model_events import on_grow_session_start_hour_changed
 
 class JobsView(BaseView):
     route_base = '/jobs'
@@ -62,10 +62,10 @@ class GrowSessionModelView(ModelView):
         new_event("GrowSession started " + grow_session.name)
 
         self.update_redirect()
-        from tasks import start_light_task
+        from tasks import start_light_tasks
 
         for light_device in grow_session.light_devices:
-            start_light_task(light_device)
+            start_light_tasks(light_device)
         return redirect(self.get_redirect())
 
 
@@ -195,6 +195,9 @@ class FlowerDataChartView(DirectByChartView):
         },
     ]
 
+db.create_all()
+db.event.listen(GrowSession.day_start_hour, 'set', on_grow_session_start_hour_changed)
+db.event.listen(GrowSession.night_start_hour, 'set', on_grow_session_start_hour_changed)
 
 appbuilder.add_view(EventLogModelView, "EventLog", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
