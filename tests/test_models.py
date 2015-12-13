@@ -1,4 +1,5 @@
 import unittest
+from freezegun import freeze_time
 from datetime import datetime
 from base import BaseTestCase
 from app.models import GrowSession, FlowerDevice, FlowerData, Subscriber
@@ -25,6 +26,33 @@ class TestModel(BaseTestCase):
         self.assertTrue(grow_session.is_active())
         grow_session2 = GrowSession.get_inactive()[0]
         self.assertFalse(grow_session2.is_active())
+
+    def make_data_grow_seesion_day_night(self):
+        self.db.session.add(GrowSession(name="grow_session"))
+
+    def test_grow_session_day_night(self):
+        self.make_data_grow_seesion_day_night()
+        grow_session = self.db.session.query(GrowSession).first()
+        grow_session.day_start_hour = 8
+        grow_session.night_start_hour = 23
+        with freeze_time("1-1-2016 12:00:00"):
+            self.assertTrue(grow_session.is_day())
+        with freeze_time("1-1-2016 7:00:00"):
+            self.assertTrue(grow_session.is_night())
+        with freeze_time("1-1-2016 8:00:00"):
+            self.assertTrue(grow_session.is_day())
+        with freeze_time("1-1-2016 23:00:00"):
+            self.assertTrue(grow_session.is_night())
+        grow_session.day_start_hour = 8
+        grow_session.night_start_hour = 7
+        with freeze_time("1-1-2016 12:00:00"):
+            self.assertTrue(grow_session.is_day())
+        with freeze_time("1-1-2016 7:30:00"):
+            self.assertTrue(grow_session.is_night())
+        with freeze_time("1-1-2016 8:00:00"):
+            self.assertTrue(grow_session.is_day())
+        with freeze_time("1-1-2016 7:00:00"):
+            self.assertTrue(grow_session.is_night())
 
     def make_data_subscriber(self):
         self.db.session.add(GrowSession(name="grow_session", start_date=datetime.now()))

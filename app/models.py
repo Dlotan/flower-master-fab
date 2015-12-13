@@ -60,8 +60,38 @@ class GrowSession(Model):
         """
         return self.start_date is not None and self.end_date is None
 
+    def is_day(self):
+        """
+
+        Returns:
+            bool:
+        """
+        now = datetime.now()
+        if self.night_start_hour < self.day_start_hour:  # Day -> 8:00 Night 1:00.
+            if self.night_start_hour <= now.hour < self.day_start_hour:
+                return False
+            else:
+                return True
+        else:  # Day -> 8:00 Night 23:00.
+            if self.day_start_hour <= now.hour < self.night_start_hour:
+                return True
+            else:
+                return False
+
+    def is_night(self):
+        """
+
+        Returns:
+            bool:
+        """
+        return not self.is_day()
+
     @staticmethod
     def get_active():
+        """ Get all GrowSessions which have a start_date
+        Returns:
+            list[GrowSession]:
+        """
         result = []
         for grow_session in appbuilder.session.query(GrowSession).all():
             if grow_session.is_active():
@@ -70,6 +100,10 @@ class GrowSession(Model):
 
     @staticmethod
     def get_inactive():
+        """ Get all GrowSessions which don't have a start_date
+        Returns:
+            list[GrowSession]:
+        """
         result = []
         for grow_session in appbuilder.session.query(GrowSession).all():
             if not grow_session.is_active():
@@ -96,6 +130,10 @@ class LightDevice(Model):
 
     @staticmethod
     def get_active():
+        """ Get all LightDevices which have a GrowSession which is active
+        Returns:
+            list[LightDevice]:
+        """
         result = []
         for light_device in appbuilder.session.query(LightDevice).all():
             if light_device.grow_session.is_active():
@@ -104,6 +142,10 @@ class LightDevice(Model):
 
     @staticmethod
     def get_inactive():
+        """ Get all LightDevices which don't have a GrowSession which is active
+        Returns:
+            list[LightDevice]:
+        """
         result = []
         for light_device in appbuilder.session.query(LightDevice).all():
             if not light_device.grow_session.is_active():

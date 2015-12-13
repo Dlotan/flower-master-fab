@@ -246,7 +246,7 @@ class FlowerPeripheral(Peripheral):
                 pass
 
     def enable(self):
-        self._make_all_connections() # Have to make all connections at start otherwise the Battery can't connect
+        self._make_all_connections()  # Have to make all connections at start otherwise the Battery can't connect
         for service in self.flower_services:
             self.flower_services[service].enable(self)
 
