@@ -7,9 +7,11 @@ from flask.ext.appbuilder import ModelView, BaseView, expose
 from datetime import datetime
 from app import appbuilder, db
 from flask import current_app
+from app.models import LightDevice, GrowSession, \
+    EventLog, FlowerDevice, FlowerData, Subscriber, \
+    new_event, WaterDevice, Webcam, WebcamScreenshot
+from app.model_events import on_grow_session_hour_changed, after_grow_session_update
 
-from app.models import LightDevice, GrowSession, EventLog, FlowerDevice, FlowerData, Subscriber, new_event, WaterDevice
-from app.model_events import on_grow_session_start_hour_changed
 
 class JobsView(BaseView):
     route_base = '/jobs'
@@ -49,6 +51,7 @@ class GrowSessionModelView(ModelView):
     related_views = [LightDevice, FlowerDevice, FlowerData]
 
     list_columns = ['name']
+    edit_exclude_columns = ['flower_data']
 
     @action("Start", "Start this session", "Do you really want to?", "fa-rocket")
     def start(self, grow_sessions):
@@ -147,6 +150,13 @@ class SubscriberModelView(ModelView):
     list_columns = ['name']
 
 
+class WebcamModelView(ModelView):
+    datamodel = SQLAInterface(Webcam)
+    related_views = [GrowSession]
+
+    list_columns = ['name']
+
+
 class FlowerDataChartView(DirectByChartView):
     datamodel = SQLAInterface(FlowerData)
     chart_title = 'Flower Data'
@@ -195,9 +205,11 @@ class FlowerDataChartView(DirectByChartView):
         },
     ]
 
+
 db.create_all()
-db.event.listen(GrowSession.day_start_hour, 'set', on_grow_session_start_hour_changed)
-db.event.listen(GrowSession.night_start_hour, 'set', on_grow_session_start_hour_changed)
+db.event.listen(GrowSession.day_start_hour, 'set', on_grow_session_hour_changed, retval=True)
+db.event.listen(GrowSession.night_start_hour, 'set', on_grow_session_hour_changed, retval=True)
+db.event.listen(GrowSession, 'after_update', after_grow_session_update)
 
 appbuilder.add_view(EventLogModelView, "EventLog", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
@@ -213,7 +225,8 @@ appbuilder.add_view(FlowerDataModelView, "FlowerData", icon="fa-folder-open-o", 
                     category_icon="fa-envelope")
 appbuilder.add_view(SubscriberModelView, "Subscriber", icon="fa-folder-open-o", category="Manage",
                     category_icon="fa-envelope")
-
+appbuilder.add_view(WebcamModelView, "Webcam", icon="fa-folder-open-o", category="Manage",
+                    category_icon="fa-envelope")
 appbuilder.add_view(FlowerDataChartView, "FlowerData", icon="fa-folder-open-o", category="View",
                     category_icon="fa-envelope")
 appbuilder.add_view(JobsView, "Jobs", category="View")

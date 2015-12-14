@@ -6,17 +6,19 @@ from app import tasks
 from datetime import datetime
 
 
-class TestTaskHandler(BaseTestCase):
+class TestTasks(BaseTestCase):
     def setUp(self):
-        super(TestTaskHandler, self).setUp()
+        super(TestTasks, self).setUp()
 
     def tearDown(self):
-        super(TestTaskHandler, self).tearDown()
+        super(TestTasks, self).tearDown()
         self.db.session.query(GrowSession).delete()
         self.db.session.query(FlowerDevice).delete()
         self.db.session.query(WaterDevice).delete()
         self.db.session.query(Subscriber).delete()
         self.db.session.commit()
+        if tasks.scheduler:
+            tasks.scheduler = None
 
     def make_data_session_flower(self):
         self.db.session.add(GrowSession(name="grow_session", start_date=datetime.now()))
@@ -90,6 +92,7 @@ class TestTaskHandler(BaseTestCase):
         send_email_mock.return_value = True
         tasks.update_subscribers()
         self.assertEqual(send_email_mock.called, True, "Didn't try to send email")
+
 
 if __name__ == '__main__':
     unittest.main()

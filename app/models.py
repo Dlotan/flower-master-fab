@@ -2,7 +2,7 @@ from flask.ext.appbuilder import Model
 from flask.ext.appbuilder.models.mixins import AuditMixin, FileColumn, ImageColumn
 from sqlalchemy import Column, Integer, \
     String, ForeignKey, DateTime, \
-    Boolean, REAL, Date
+    Boolean, REAL, Date, BLOB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app import appbuilder, db, app
@@ -128,6 +128,17 @@ class LightDevice(Model):
     def __repr__(self):
         return self.name
 
+    def is_active(self):
+        """
+
+        Returns:
+            bool: Active / Not Active.
+        """
+        if self.grow_session:
+            if self.grow_session.is_active():
+                return True
+        return False
+
     @staticmethod
     def get_active():
         """ Get all LightDevices which have a GrowSession which is active
@@ -136,7 +147,7 @@ class LightDevice(Model):
         """
         result = []
         for light_device in appbuilder.session.query(LightDevice).all():
-            if light_device.grow_session.is_active():
+            if light_device.is_active():
                 result.append(light_device)
         return result
 
@@ -148,7 +159,7 @@ class LightDevice(Model):
         """
         result = []
         for light_device in appbuilder.session.query(LightDevice).all():
-            if not light_device.grow_session.is_active():
+            if not light_device.is_active():
                 result.append(light_device)
         return result
 
@@ -284,6 +295,17 @@ class Subscriber(Model):
     def __repr__(self):
         return self.name
 
+    def is_active(self):
+        """
+
+        Returns:
+            bool: Aktive / Not Aktive
+        """
+        if self.grow_session:
+            if self.grow_session.is_active():
+                return True
+        return False
+
     @staticmethod
     def get_active():
         """ Get Subscribers which have active GrowSession.
@@ -292,7 +314,7 @@ class Subscriber(Model):
         """
         result = []
         for subscriber in appbuilder.session.query(Subscriber).all():
-            if subscriber.grow_session.is_active():
+            if subscriber.is_active():
                 result.append(subscriber)
         return result
 
@@ -304,8 +326,59 @@ class Webcam(Model):
     name = Column(String)
     devicepath = Column(String)
 
+    webcam_screenshots = relationship('WebcamScreenshot', back_populates='webcam')
+
     grow_session_id = Column(Integer, ForeignKey('grow_session.id'))
     grow_session = relationship("GrowSession")
 
     def __repr__(self):
         return self.name
+
+    def is_active(self):
+        """
+
+        Returns:
+            bool: Aktive / Not Aktive
+        """
+        if self.grow_session:
+            if self.grow_session.is_active():
+                return True
+        return False
+
+    @staticmethod
+    def get_active():
+        """
+
+        Returns:
+            list[Webcam]: List of all active Webcams.
+        """
+        result = []
+        for webcam in appbuilder.session.query(Webcam).all():
+            if webcam.is_active():
+                result.append(webcam)
+        return result
+
+
+class WebcamScreenshot(Model):
+    __tablename__ = 'webcam_screenshot'
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, index=True, default=func.now())
+    file = Column(BLOB)
+    sizex = Column(Integer)
+    sizey = Column(Integer)
+
+    webcam_id = Column(Integer, ForeignKey('webcam.id'))
+    webcam = relationship("Webcam")
+
+    def get_size(self):
+        return self.sizex, self.sizey
+
+    @staticmethod
+    def new_webcam_screenshot(image, webcam):
+        return WebcamScreenshot(
+            file=image.tobytes(),
+            sizex=image.size[0],
+            sizey=image.size[1],
+            webcam_id=webcam.id,
+        )

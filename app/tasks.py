@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.models import LightDevice, new_event, FlowerData, WaterDevice, GrowSession
+from app.models import LightDevice, new_event, FlowerData, WaterDevice, GrowSession, Webcam, WebcamScreenshot
 from app import appbuilder, db, app, hub
-from flask import current_app
+from PIL import Image
+from third_party.images2gif.images2gif import writeGif
 import logging
 
 scheduler = None
@@ -176,12 +177,33 @@ def update_subscribers():
             new_event("Send email to " + subscriber.name)
 
 
+def time_lapse():
+    if app.config["WEBCAM"]:
+        from app.hardware import webcam as webcam_module
+        for webcam_item in Webcam.get_active():
+            screenshots = db.session.query(WebcamScreenshot).order_by(WebcamScreenshot.timestamp).all()
+            images = []
+            for screenshot in screenshots:
+                images.append(Image.frombytes('RGB', screenshot.get_size(), buffer(screenshot.file)))
+            time_lapse_filename = 'time_lapse.gif'
+            writeGif(time_lapse_filename, images, duration=0.2)
+            hub.new_webcam_gif(time_lapse_filename)
+            new_event("Made Time Lapse")
+
+
 def webcam():
     if app.config["WEBCAM"]:
-        from app.hardware import webcam
-        filename = webcam.webcam_make_screenshot()
-        hub.new_webcam_screenshot(filename)
-        new_event("Made screenshot")
+        from app.hardware import webcam as webcam_module
+        for webcam_item in Webcam.get_active():
+            if webcam_item.grow_session.is_day():
+                filename = webcam_module.webcam_make_screenshot()
+                # Upload screenshot
+                hub.new_webcam_screenshot(filename)
+                new_event("Made screenshot " + webcam_item.name)
+                # Save screenshot in DB.
+                image = Image.open(filename)
+                db.session.add(WebcamScreenshot.new_webcam_screenshot(image, webcam_item))
+                db.session.commit()
 
 
 def start_light_tasks(light_device):
@@ -200,8 +222,12 @@ def start_light_tasks(light_device):
 
 
 def stop_light_tasks(light_device):
-    scheduler.remove_job('light_on_' + light_device.name)
-    scheduler.remove_job('light_off_' + light_device.name)
+    job = scheduler.get_job('light_on_' + light_device.name)
+    if job:
+        job.remove()
+    job = scheduler.get_job('light_off_' + light_device.name)
+    if job:
+        job.remove()
 
 
 def start_scheduler():
@@ -210,8 +236,8 @@ def start_scheduler():
 
     """
     global scheduler
-    scheduler = BackgroundScheduler(executors=current_app.config['SCHEDULER_EXECUTORS'],
-                                    job_defaults=current_app.config['SCHEDULER_DEFAULTS'])
+    scheduler = BackgroundScheduler(executors=app.config['SCHEDULER_EXECUTORS'],
+                                    job_defaults=app.config['SCHEDULER_DEFAULTS'])
     scheduler.remove_all_jobs()
     scheduler.add_job(meassure, 'cron', minute='0,15,30,45', id='meassure')
     # Light devices.
@@ -231,7 +257,11 @@ def start_scheduler():
                       hour='15', id='update_subscribers')
     # Webcam
     scheduler.add_job(webcam, 'cron',
-                      hour='10-22', minute='1,31', id='webcam')
+                      minute='1,31', id='webcam')
     webcam()
+    # Time Lapse
+    scheduler.add_job(time_lapse, 'cron',
+                      hour='12,18', id='timelapse')
+    time_lapse()
     print("Scheduler started")
     scheduler.start()

@@ -56,3 +56,18 @@ def new_webcam_screenshot(filename):
     r = requests.post(app.config["HUB_URL"] + "/flower/new_picture",
                       files={filename: open(filename, 'rb')})
     return r.status_code == 200
+
+
+def new_webcam_gif(filename):
+    """ Uploads the screenshot filename to the hub.
+    Args:
+        filename: The filename of the file which should be pushed to the hub.
+
+    Returns:
+
+    """
+    r = requests.get(app.config["HUB_URL"] + "/flower/new_gif")
+    blob_url = r.text
+    r = requests.post(blob_url,
+                      files={"file": open(filename, 'rb')})
+    return r.status_code == 200

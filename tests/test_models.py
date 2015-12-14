@@ -2,7 +2,7 @@ import unittest
 from freezegun import freeze_time
 from datetime import datetime
 from base import BaseTestCase
-from app.models import GrowSession, FlowerDevice, FlowerData, Subscriber
+from app.models import GrowSession, FlowerDevice, FlowerData, Subscriber, LightDevice
 
 
 class TestModel(BaseTestCase):
@@ -12,6 +12,7 @@ class TestModel(BaseTestCase):
         self.db.session.query(FlowerDevice).delete()
         self.db.session.query(FlowerData).delete()
         self.db.session.query(Subscriber).delete()
+        self.db.session.query(LightDevice).delete()
         self.db.session.commit()
 
     def make_data_grow_session(self):

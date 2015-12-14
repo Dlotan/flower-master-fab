@@ -47,6 +47,32 @@ def clear():
 
 
 @manager.command
+def clear_screenshots():
+    from app.models import WebcamScreenshot
+    db.session.query(WebcamScreenshot).delete()
+    db.session.commit()
+
+
+@manager.command
+def standarddata():
+    from app.models import LightDevice, GrowSession, WaterDevice, FlowerDevice, Webcam
+    db.create_all()
+    role_admin = appbuilder.sm.find_role(appbuilder.sm.auth_role_admin)
+    appbuilder.sm.add_user('Dlotan', 'Admin', 'User', 'admin@dlotan.org', role_admin, 'dlotan')
+
+    db.session.add(GrowSession(name="grow_session"))
+    grow_session = db.session.query(GrowSession).first()
+    db.session.add(LightDevice(name="light", key="10011", device=2, grow_session_id=grow_session.id))
+    light_device = db.session.query(LightDevice).first()
+    db.session.add(WaterDevice(name="water", key="10011", device=1, grow_session_id=grow_session.id))
+    water_device = db.session.query(WaterDevice).first()
+    db.session.add(FlowerDevice(name="flower", mac="A0:14:3D:08:B4:90", grow_session_id=grow_session.id))
+    flower_device = db.session.query(FlowerDevice).first()
+    db.session.add(Webcam(name="webcam", grow_session_id=grow_session.id))
+    db.session.commit()
+
+
+@manager.command
 def testdata():
     from app.models import LightDevice, GrowSession, WaterDevice, FlowerDevice
     from datetime import datetime, timedelta
@@ -82,6 +108,7 @@ def testdata():
         db.session.add(datapoint)
     db.session.commit()
     print("Test Data Added")
+
 
 if __name__ == '__main__':
     manager.run()
