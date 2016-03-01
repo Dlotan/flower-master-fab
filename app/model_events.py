@@ -26,4 +26,3 @@ def after_grow_session_update(mapper, connection, grow_session):
             for light_device in grow_session.light_devices:
                 tasks.stop_light_tasks(light_device)
                 tasks.start_light_tasks(light_device)
-                tasks.new_event("Set new tasks for " + light_device.name)

@@ -66,7 +66,7 @@ def standarddata():
     light_device = db.session.query(LightDevice).first()
     db.session.add(WaterDevice(name="water", key="10011", device=1, grow_session_id=grow_session.id))
     water_device = db.session.query(WaterDevice).first()
-    db.session.add(FlowerDevice(name="flower", mac="A0:14:3D:08:B4:90", grow_session_id=grow_session.id))
+    db.session.add(FlowerDevice(name="flower", mac="A0:14:3D:08:B3:51", grow_session_id=grow_session.id))
     flower_device = db.session.query(FlowerDevice).first()
     db.session.add(Webcam(name="webcam", grow_session_id=grow_session.id))
     db.session.commit()

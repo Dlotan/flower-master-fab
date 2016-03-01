@@ -56,9 +56,6 @@ def switch_light(light_id, on):
         from app.hardware import remote_socket
 
         remote_socket.switch(map(int, light_device.key), light_device.device, on)
-    light_device.state = on
-    db.session.commit()
-    new_event("Switch Light " + light_device.name + " to " + str(light_device.state))
 
 
 def switch_light_on(light_id):
@@ -184,7 +181,8 @@ def time_lapse():
             screenshots = db.session.query(WebcamScreenshot).order_by(WebcamScreenshot.timestamp).all()
             images = []
             for screenshot in screenshots:
-                images.append(Image.frombytes('RGB', screenshot.get_size(), buffer(screenshot.file)))
+                image = Image.frombytes('RGB', screenshot.get_size(), buffer(screenshot.file))
+                images.append(image)
             time_lapse_filename = 'time_lapse.gif'
             writeGif(time_lapse_filename, images, duration=0.2)
             hub.new_webcam_gif(time_lapse_filename)
@@ -260,8 +258,8 @@ def start_scheduler():
                       minute='1,31', id='webcam')
     webcam()
     # Time Lapse
-    scheduler.add_job(time_lapse, 'cron',
-                      hour='12,18', id='timelapse')
-    time_lapse()
+    # scheduler.add_job(time_lapse, 'cron',
+    #                   hour='12,18', id='timelapse')
+    # time_lapse()
     print("Scheduler started")
     scheduler.start()
